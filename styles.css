@@ -1433,10 +1433,22 @@ ul { list-style: none; }
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 36px;
+  background-color: #1a1a2e;
+  color: #e2e8f0;
 }
 .auth-select option {
-  background: #1a1a2e;
-  color: #fff;
+  background-color: #1a1a2e;
+  color: #e2e8f0;
+}
+
+/* Also fix any inline select inside masterclass registration form */
+select.auth-input {
+  background-color: #1a1a2e !important;
+  color: #e2e8f0 !important;
+}
+select.auth-input option {
+  background-color: #1a1a2e !important;
+  color: #e2e8f0 !important;
 }
 .mc-reg-label {
   font-size: 0.78rem;

@@ -106,6 +106,21 @@ async function renderDynamicLiveClasses() {
 }
 
 function enrollLiveClass(id, title) {
+  const session = (function() {
+    try { return JSON.parse(localStorage.getItem('aai_session') || 'null'); } catch(e) { return null; }
+  })();
+
+  if (session && session.email) {
+    // Already logged in — submit enrollment directly
+    if (typeof apiAddEnrollment !== 'undefined') {
+      apiAddEnrollment({ name: session.name, email: session.email, phone: '', course: title, courseId: '' })
+        .catch(() => {});
+    }
+    showToast('Enrolled in "' + title + '" successfully!', 'success');
+    return;
+  }
+
+  // Not logged in — open enroll modal
   if (document.getElementById('enrollModal')) {
     document.getElementById('modalCourseName').textContent = title;
     if (document.getElementById('reg_course'))
