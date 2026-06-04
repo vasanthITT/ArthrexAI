@@ -458,7 +458,8 @@ def delete_liveclass(lid):
 # ─────────────────────────────────────────────
 #  RUN
 # ─────────────────────────────────────────────
+init_db()  # Always run on startup — works for both gunicorn and direct python
+
 if __name__ == '__main__':
-    init_db()
-    print("🚀 Arthrex AI Server running at http://localhost:8000")
+    print("Starting Arthrex AI Server at http://localhost:8000")
     app.run(debug=True, port=8000)
