@@ -7,10 +7,12 @@ const sections = document.querySelectorAll('.content-section');
   const s = document.getElementById('mainSearch');
   if (!s) return;
   s.value = '';
-  s.setAttribute('autocomplete', 'off');
-  // Double-clear trick for Chrome autofill
+  s.setAttribute('autocomplete', 'search');
+  // Multi-stage clear: Chrome autofill fires at different timings
   s.setAttribute('readonly', true);
   setTimeout(() => { s.removeAttribute('readonly'); s.value = ''; }, 50);
+  setTimeout(() => { s.value = ''; }, 200);
+  setTimeout(() => { s.value = ''; }, 500);
 })();
 
 function showSection(sectionId) {

@@ -95,17 +95,49 @@ function renderCourseDetail(c) {
     ? `<span class="cd-price-free">FREE</span>`
     : `<span class="cd-price-current">${price}</span>`;
 
-  // Enroll button
-  document.getElementById('cdEnrollBtn').textContent = isFree ? 'Enroll Free' : 'Enroll Now';
-  document.getElementById('cdEnrollBtn').onclick = () => {
-    document.getElementById('courseDetailModal').classList.remove('active');
-    // Trigger enroll modal
-    if (typeof currentCourse !== 'undefined') {
-      document.getElementById('modalCourseName').textContent = name;
-      document.getElementById('reg_course').value = name;
-      document.getElementById('enrollModal').classList.add('active');
-    }
-  };
+  // Enroll button — FIX: check session and existing enrollment before showing modal
+  const cdEnrollBtn = document.getElementById('cdEnrollBtn');
+  const session = (function() {
+    try { return JSON.parse(localStorage.getItem('aai_session') || 'null'); } catch(e) { return null; }
+  })();
+  const enrollments = JSON.parse(localStorage.getItem('lf_enrollments') || '[]');
+  const alreadyEnrolled = session && enrollments.find(en =>
+    en.email.toLowerCase() === (session.email || '').toLowerCase() &&
+    en.course.toLowerCase() === name.toLowerCase()
+  );
+
+  if (alreadyEnrolled) {
+    cdEnrollBtn.textContent = '✅ Enrolled';
+    cdEnrollBtn.disabled = true;
+    cdEnrollBtn.style.opacity = '0.7';
+    cdEnrollBtn.onclick = null;
+  } else if (session && session.email) {
+    // Logged in but not enrolled — enroll directly
+    cdEnrollBtn.textContent = isFree ? 'Enroll Free' : 'Enroll Now';
+    cdEnrollBtn.disabled = false;
+    cdEnrollBtn.style.opacity = '';
+    cdEnrollBtn.onclick = () => {
+      document.getElementById('courseDetailModal').classList.remove('active');
+      if (document.getElementById('enrollModal')) {
+        document.getElementById('modalCourseName').textContent = name;
+        if (document.getElementById('reg_course')) document.getElementById('reg_course').value = name;
+        document.getElementById('enrollModal').classList.add('active');
+      }
+    };
+  } else {
+    // Not logged in — open enroll/register modal
+    cdEnrollBtn.textContent = isFree ? 'Enroll Free' : 'Enroll Now';
+    cdEnrollBtn.disabled = false;
+    cdEnrollBtn.style.opacity = '';
+    cdEnrollBtn.onclick = () => {
+      document.getElementById('courseDetailModal').classList.remove('active');
+      if (document.getElementById('enrollModal')) {
+        document.getElementById('modalCourseName').textContent = name;
+        if (document.getElementById('reg_course')) document.getElementById('reg_course').value = name;
+        document.getElementById('enrollModal').classList.add('active');
+      }
+    };
+  }
 
   // Curriculum from LMS data
   renderCurriculum(name);

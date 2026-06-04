@@ -2,6 +2,15 @@
 // API-only — reads exclusively from Flask /api/liveclasses. No localStorage, no cache guard.
 let _cachedLcList = [];
 
+// Track locally enrolled live class IDs for this session
+const _enrolledLcIds = new Set(
+  JSON.parse(localStorage.getItem('lf_lc_enrolled') || '[]')
+);
+
+function _saveLcEnrolled() {
+  localStorage.setItem('lf_lc_enrolled', JSON.stringify([..._enrolledLcIds]));
+}
+
 async function getLiveClasses() {
   try {
     const res = await fetch('/api/liveclasses');
@@ -62,7 +71,7 @@ async function renderDynamicLiveClasses() {
       : `background:linear-gradient(135deg,#7c3aed,#2563eb)`;
 
     return `
-      <div class="live-card ${isLive ? 'featured' : ''}">
+      <div class="live-card ${isLive ? 'featured' : ''}" data-lc-id="${lc.id}">
         <div class="live-thumb" style="${thumbStyle}">
           ${lc.thumb ? `<img src="${lc.thumb}" alt="${lc.title}" class="live-thumb-img"/>` : ''}
           <div class="live-thumb-overlay"></div>
@@ -98,7 +107,9 @@ async function renderDynamicLiveClasses() {
           <div class="live-actions">
             ${isLive
               ? `<a href="${lc.link || '#'}" target="_blank" class="btn-join">▶ Join Now</a>`
-              : `<a href="#" class="btn-enroll" onclick="enrollLiveClass('${lc.id}','${lc.title.replace(/'/g,"\\'")}');return false;">▶ Enroll</a>`}
+              : _enrolledLcIds.has(String(lc.id))
+                ? `<button class="btn-enroll btn-enrolled" disabled>✅ Enrolled</button>`
+                : `<a href="#" class="btn-enroll" onclick="enrollLiveClass('${lc.id}','${lc.title.replace(/'/g,"\\'")}');return false;">▶ Enroll</a>`}
           </div>
         </div>
       </div>`;
@@ -115,6 +126,17 @@ function enrollLiveClass(id, title) {
     if (typeof apiAddEnrollment !== 'undefined') {
       apiAddEnrollment({ name: session.name, email: session.email, phone: '', course: title, courseId: '' })
         .catch(() => {});
+    }
+    // FIX: persist enrolled state so button stays "Enrolled" across re-renders
+    _enrolledLcIds.add(String(id));
+    _saveLcEnrolled();
+    // Update the button immediately without waiting for the 30s re-render
+    const card = document.querySelector(`[data-lc-id="${id}"]`);
+    if (card) {
+      const actionsEl = card.querySelector('.live-actions');
+      if (actionsEl) {
+        actionsEl.innerHTML = `<button class="btn-enroll btn-enrolled" disabled>✅ Enrolled</button>`;
+      }
     }
     showToast('Enrolled in "' + title + '" successfully!', 'success');
     return;
