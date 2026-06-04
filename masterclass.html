@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Masterclass — Arthrex AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="masterclass.css"/>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="logo">
+        <img src="logo-cropped.png" alt="Arthrex AI" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+        <span style="display:none;font-size:1.2rem;font-weight:800;color:white">Arthrex<span style="color:#a78bfa">AI</span></span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <a href="index.html#masterclass" class="btn-back">← All Masterclasses</a>
+      <button class="mc-share-btn" id="btnShare" title="Copy shareable link">🔗 Share</button>
+    </div>
+  </header>
+
+  <!-- Loading state -->
+  <div class="mc-page-loading" id="mcPageLoading">
+    <div class="mc-spinner"></div>
+    <p>Loading masterclass...</p>
+  </div>
+
+  <!-- Not found state -->
+  <div class="mc-not-found" id="mcNotFound" style="display:none">
+    <div style="font-size:3rem;margin-bottom:16px">😕</div>
+    <h2>Masterclass not found</h2>
+    <p>This masterclass may have been removed or the link is invalid.</p>
+    <a href="index.html" class="btn-primary" style="margin-top:20px;display:inline-block">← Back to Dashboard</a>
+  </div>
+
+  <!-- Main content -->
+  <div class="mc-page" id="mcPage" style="display:none">
+
+    <!-- HERO SECTION -->
+    <div class="mc-hero" id="mcHero">
+      <div class="mc-hero-bg" id="mcHeroBg"></div>
+      <div class="mc-hero-overlay"></div>
+      <div class="mc-hero-content">
+        <div class="mc-breadcrumb">
+          <a href="index.html">Home</a>
+          <span>›</span>
+          <a href="index.html#masterclass">Free Masterclasses</a>
+          <span>›</span>
+          <span id="mcHeroTag">Masterclass</span>
+        </div>
+        <div class="mc-status-row" id="mcStatusRow"></div>
+        <h1 class="mc-hero-title" id="mcHeroTitle">Loading...</h1>
+        <p class="mc-hero-desc" id="mcHeroDesc"></p>
+        <div class="mc-hero-meta" id="mcHeroMeta"></div>
+        <div class="mc-countdown-banner" id="mcCountdownBanner" style="display:none">
+          <span class="mc-countdown-label">Starts in</span>
+          <span class="mc-countdown-value" id="mcCountdownValue">--:--:--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="mc-body">
+
+      <!-- LEFT: Details -->
+      <div class="mc-details">
+
+        <!-- About section -->
+        <div class="mc-section">
+          <h2 class="mc-section-title">About this Masterclass</h2>
+          <p class="mc-about-text" id="mcAboutText"></p>
+        </div>
+
+        <!-- What you'll learn -->
+        <div class="mc-section">
+          <h2 class="mc-section-title">What You'll Learn</h2>
+          <ul class="mc-learn-grid" id="mcLearnGrid"></ul>
+        </div>
+
+        <!-- Session details -->
+        <div class="mc-section">
+          <h2 class="mc-section-title">Session Details</h2>
+          <div class="mc-details-grid" id="mcDetailsGrid"></div>
+        </div>
+
+        <!-- Instructor -->
+        <div class="mc-section" id="mcInstructorSection" style="display:none">
+          <h2 class="mc-section-title">Your Instructor</h2>
+          <div class="mc-instructor-card" id="mcInstructorCard"></div>
+        </div>
+
+        <!-- Deep link / share section -->
+        <div class="mc-section">
+          <h2 class="mc-section-title">Share this Masterclass</h2>
+          <div class="mc-deeplink-box">
+            <span class="mc-deeplink-label">🔗 Direct Link</span>
+            <div class="mc-deeplink-row">
+              <input type="text" id="mcDeepLinkInput" readonly class="mc-deeplink-input"/>
+              <button class="mc-copy-btn" id="mcCopyBtn" onclick="copyDeepLink()">📋 Copy</button>
+            </div>
+            <p class="mc-deeplink-hint">Share this link to give anyone direct access to this masterclass page.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: Registration card (sticky) -->
+      <div class="mc-sidebar">
+        <div class="mc-reg-card" id="mcRegCard">
+          <div class="mc-reg-card-thumb" id="mcRegCardThumb"></div>
+          <div class="mc-reg-card-body">
+            <div class="mc-reg-free-badge">🎓 FREE Masterclass</div>
+            <div class="mc-reg-meta" id="mcRegMeta"></div>
+
+            <!-- Join link (shown after registration or if live) -->
+            <div class="mc-join-link-box" id="mcJoinLinkBox" style="display:none">
+              <div class="mc-join-link-label">🔗 Join Link</div>
+              <a id="mcJoinLinkAnchor" href="#" target="_blank" class="mc-join-link-url"></a>
+            </div>
+
+            <!-- Registration form -->
+            <div id="mcRegFormWrap">
+              <div id="mcRegAlreadyDone" style="display:none" class="mc-already-registered">
+                <span>✅ You're registered!</span>
+                <button class="mc-unreg-btn" onclick="unregisterMc()">Unregister</button>
+              </div>
+              <div id="mcRegFormFields">
+                <div class="mc-reg-field">
+                  <label>Full Name *</label>
+                  <input type="text" id="mcpName" placeholder="Your full name" class="auth-input"/>
+                </div>
+                <div class="mc-reg-field">
+                  <label>Email Address *</label>
+                  <input type="email" id="mcpEmail" placeholder="you@example.com" class="auth-input"/>
+                </div>
+                <div class="mc-reg-field">
+                  <label>Phone Number</label>
+                  <input type="tel" id="mcpPhone" placeholder="+91 XXXXX XXXXX" class="auth-input"/>
+                </div>
+                <div class="mc-reg-field">
+                  <label>Country</label>
+                  <select id="mcpCountry" class="auth-input" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:10px 14px;color:#e2e8f0;font-size:0.88rem;outline:none;width:100%">
+                    <option value="">Select country</option>
+                    <option>India</option><option>United States</option><option>United Kingdom</option>
+                    <option>Canada</option><option>Australia</option><option>Germany</option>
+                    <option>Singapore</option><option>UAE</option><option>Saudi Arabia</option>
+                    <option>South Africa</option><option>Nigeria</option><option>Kenya</option>
+                    <option>Brazil</option><option>Indonesia</option><option>Philippines</option>
+                    <option>Malaysia</option><option>Bangladesh</option><option>Pakistan</option>
+                    <option>Sri Lanka</option><option>Nepal</option><option>Other</option>
+                  </select>
+                </div>
+                <div id="mcpError" style="display:none;color:#f87171;font-size:0.8rem;margin-bottom:8px"></div>
+                <button class="mc-reg-submit-btn" id="mcpSubmitBtn" onclick="submitMcRegistration()">
+                  Register for Free →
+                </button>
+                <p class="mc-reg-note">Free · No credit card required · Instant confirmation</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Related / upcoming masterclasses -->
+        <div class="mc-related-box" id="mcRelatedBox" style="display:none">
+          <h3 class="mc-related-title">More Masterclasses</h3>
+          <div id="mcRelatedList"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="toaster.js?v=6"></script>
+  <script src="api.js?v=6"></script>
+  <script src="masterclass-page.js?v=6"></script>
+</body>
+</html>

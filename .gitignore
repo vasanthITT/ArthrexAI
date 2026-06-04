@@ -1,0 +1,7 @@
+arthrex.db
+__pycache__/
+*.pyc
+*.log
+.vscode/
+.DS_Store
+node_modules/
