@@ -14,12 +14,7 @@ const GRADIENTS = [
   'linear-gradient(135deg,#f97316,#facc15)',
 ];
 
-const CATEGORY_ICONS: Record<string, string> = {
-  'Generative AI': '✨', 'Agentic AI': '🤖',
-  'Data Science': '🔬', 'Data Science & Analytics': '🔬',
-  'Domain AI': '🏭', 'Industry AI': '🏭', 'LLM': '🧠',
-  'RAG': '🔗', 'MCP': '🔌', 'Programming': '💻', default: '📚',
-};
+import CategoryIcon from '@/components/ui/CategoryIcon';
 
 function getGreeting() {
   const h = new Date().getHours();

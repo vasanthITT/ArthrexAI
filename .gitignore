@@ -3,6 +3,9 @@
 *.sqlite
 *.sqlite3
 
+# Docs
+*.md
+
 # Logs
 *.log
 

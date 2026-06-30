@@ -113,18 +113,14 @@ export const COURSE_SECTIONS = [
   },
 ];
 
+import CategoryIcon from '@/components/ui/CategoryIcon';
+
 interface CourseCardProps {
   course: { title: string; tag: string; badge: string; badgeCls: string; desc: string; meta: string[]; filter?: string; isEnterprise?: boolean };
   onEnroll: (name: string) => void;
 }
 
 function CourseCard({ course, onEnroll }: CourseCardProps) {
-  const EMOJI: Record<string, string> = {
-    'Agentic AI': '🤖', 'Generative AI': '✨', 'RAG': '🔗', 'MCP': '🔌',
-    'Data Science': '🔬', 'Data Science & Analytics': '🔬',
-    'Domain AI': '🏭', 'Programming': '💻', 'Cloud Based': '☁️',
-    'Enterprise': '🏢', default: '📚',
-  };
   const GRAD: Record<string, string> = {
     'Agentic AI': 'linear-gradient(135deg,#7c3aed,#2563eb)',
     'Generative AI': 'linear-gradient(135deg,#ec4899,#8b5cf6)',
@@ -137,12 +133,13 @@ function CourseCard({ course, onEnroll }: CourseCardProps) {
     'Enterprise': 'linear-gradient(135deg,#1e3a5f,#2563eb)',
     default: 'linear-gradient(135deg,#7c3aed,#2563eb)',
   };
-  const icon = EMOJI[course.tag] || EMOJI.default;
   const grad = GRAD[course.tag] || GRAD.default;
 
   return (
     <div className={`master-card course-card pro-card${course.isEnterprise ? ' enterprise-card' : ''}`} data-filter={course.filter || ''}>
-      <div className="card-thumb" style={{ background: grad }}>{icon}</div>
+      <div className="card-thumb" style={{ background: grad }}>
+        <CategoryIcon category={course.tag} />
+      </div>
       <div className="card-body">
         <span className={`pro-badge${course.badgeCls ? ' ' + course.badgeCls : ''}`}>{course.badge}</span>
         <span className={`tag${course.isEnterprise ? ' enterprise-tag' : ''}`}>{course.tag}</span>
