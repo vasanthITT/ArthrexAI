@@ -118,14 +118,15 @@ export default function DashboardSection({ onNavigate, onShowAuth }: DashboardPr
       ) : (
         <div className="cards-grid">
           {courseEntries.map(([id, course], idx) => {
-            const icon  = CATEGORY_ICONS[course.category || ''] || CATEGORY_ICONS.default;
             const grad  = GRADIENTS[idx % GRADIENTS.length];
             const pct   = progresses[id] || 0;
             const total = (course.topics || []).reduce((s, t) => s + (t.lessons || []).length, 0);
             const mods  = (course.topics || []).length;
             return (
               <div key={id} className="master-card dashboard-course-card">
-                <div className="card-thumb" style={{ background: grad }}>{icon}</div>
+                <div className="card-thumb" style={{ background: grad }}>
+                  <CategoryIcon category={course.category || ''} />
+                </div>
                 <div className="card-body">
                   <span className="tag">{course.category || 'Course'}</span>
                   <h3>{course.name}</h3>
