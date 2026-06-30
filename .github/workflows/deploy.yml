@@ -1,0 +1,24 @@
+name: Deploy to Hostinger VPS
+
+on:
+  push:
+    branches:
+      - main  # Auto-triggers on every push to main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚀 SSH into VPS and pull latest code
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/arthrex
+            git pull origin main
+            source venv/bin/activate
+            pip install -r requirements.txt -q
+            systemctl restart arthrex
+            echo "✅ Deployed successfully at $(date)"

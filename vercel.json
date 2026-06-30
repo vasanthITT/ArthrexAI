@@ -1,3 +1,0 @@
-{
-  "_note": "Vercel cannot run this app — it uses Flask+SQLite which requires a persistent server. Deploy to Render instead using render.yaml."
-}

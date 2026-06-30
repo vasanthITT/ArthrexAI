@@ -1,7 +1,41 @@
-arthrex.db
-__pycache__/
-*.pyc
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
 *.log
-.vscode/
-.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+backend/.env
+backend/app/static/uploads/
+
+# Node / Next.js
 node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+out/
+frontend/out/
+.docusaurus/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+.kiro/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
