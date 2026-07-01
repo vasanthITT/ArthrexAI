@@ -92,7 +92,7 @@ export default function Topbar({ activeSection, onShowAuth, onToggleSidebar, sea
         {/* Auth */}
         {session ? (
           <>
-            <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>{greeting}, <strong style={{ color: 'var(--text)' }}>{session.name.split(' ')[0]}</strong></span>
+            <span className="topbar-greeting" style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>{greeting}, <strong style={{ color: 'var(--text)' }}>{session.name.split(' ')[0]}</strong></span>
             <div className={`user-avatar${session.role === 'admin' ? ' avatar-admin' : ''}`} title={`${session.name} (${session.role})`}>
               {initials}
             </div>
