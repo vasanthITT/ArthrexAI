@@ -188,7 +188,28 @@ button { font-family: inherit; }
 .avatar-admin { background: linear-gradient(135deg, #f59e0b, #ef4444) !important; }
 
 .hamburger-btn {
+  display: none;
   background: none; border: none; color: var(--text); font-size: 1.3rem; cursor: pointer; padding: 4px;
+}
+.sidebar-close-btn {
+  display: none;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  z-index: 10;
+  padding: 6px;
+  border-radius: 50%;
+  transition: background 0.2s, color 0.2s;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--white);
 }
 
 /* ===== DASHBOARD LAYOUT ===== */
@@ -717,17 +738,20 @@ button { font-family: inherit; }
   .search-bar { width: 200px; }
   .story-card.featured-story { grid-column: span 1; }
 }
+
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); width: var(--sidebar-width); }
   .sidebar.mobile-open { transform: translateX(0); }
   .nav-item span:not(.nav-icon), .nav-section-label, .badge, .sidebar-cta { display: flex !important; }
-  .main-content { margin-left: 0; padding: 16px; padding-bottom: 80px; }
+  .main-content { margin-left: 0; padding: 16px; padding-bottom: 24px; }
   .topbar { padding: 0 16px; }
   .search-bar { width: 160px; }
-  .mobile-bottom-nav { display: flex; }
   .welcome-banner { padding: 24px; }
   .welcome-banner h1 { font-size: 1.5rem; }
+  .hamburger-btn { display: flex !important; align-items: center; justify-content: center; }
+  .sidebar-close-btn { display: flex !important; }
 }
+
 @media (max-width: 480px) {
   .welcome-banner { flex-direction: column; }
   .welcome-stats { justify-content: center; }
