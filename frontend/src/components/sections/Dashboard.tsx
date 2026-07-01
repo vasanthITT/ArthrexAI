@@ -104,11 +104,6 @@ export default function DashboardSection({ onNavigate, onShowAuth }: DashboardPr
           <h2>📚 My Courses</h2>
           <p className="section-subtitle">Pick up where you left off</p>
         </div>
-        {session?.role === 'admin' && (
-          <a href="/admin-lms" target="_blank" className="btn-manage-courses" style={{ padding: '8px 16px', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--card-border)', color: 'var(--text)', fontSize: '0.82rem', cursor: 'pointer' }}>
-            ✏️ Manage Courses
-          </a>
-        )}
       </div>
 
       {lmsLoading ? (
@@ -151,9 +146,6 @@ export default function DashboardSection({ onNavigate, onShowAuth }: DashboardPr
                     <a href={`/curriculum?course=${encodeURIComponent(course.name)}`} className="btn-enroll">
                       {pct > 0 ? '▶ Continue' : '▶ Start Course'}
                     </a>
-                    {session?.role === 'admin' && (
-                      <a href="/admin-lms" className="btn-edit-course" onClick={() => localStorage.setItem('lf_active_course', id)}>✏️ Edit</a>
-                    )}
                   </div>
                 </div>
               </div>
