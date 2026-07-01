@@ -31,7 +31,7 @@ def seed():
                 country="+91",
                 phone="9999999999"
             ))
-            print("✅ Admin user created  (admin@arthrex.ai / Admin@1234)")
+            print("[OK] Admin user created  (admin@arthrex.ai / Admin@1234)")
 
         demo_users = [
             {"name": "Arjun Kumar",   "email": "arjun@demo.com",  "phone": "9876543210", "country": "+91"},
@@ -47,7 +47,7 @@ def seed():
                     password=hash_password("Demo@1234"),
                     role="user", country=u["country"], phone=u["phone"]
                 ))
-        print("✅ Demo users seeded")
+        print("[OK] Demo users seeded")
 
         # ── Sample Enrollments ─────────────────────────────────────────────────
         sample_enrollments = [
@@ -62,7 +62,7 @@ def seed():
             exists = db.query(Enrollment).filter_by(email=e["email"], course=e["course"]).first()
             if not exists:
                 db.add(Enrollment(**e))
-        print("✅ Sample enrollments seeded")
+        print("[OK] Sample enrollments seeded")
 
         # ── Sample Masterclasses ───────────────────────────────────────────────
         now = datetime.now()
@@ -111,7 +111,7 @@ def seed():
         for mc in sample_masterclasses:
             if not db.query(Masterclass).filter_by(title=mc["title"]).first():
                 db.add(Masterclass(**mc))
-        print("✅ Sample masterclasses seeded")
+        print("[OK] Sample masterclasses seeded")
 
         # ── Sample Live Classes ────────────────────────────────────────────────
         sample_live_classes = [
@@ -155,7 +155,7 @@ def seed():
         for lc in sample_live_classes:
             if not db.query(LiveClass).filter_by(title=lc["title"]).first():
                 db.add(LiveClass(**lc))
-        print("✅ Sample live classes seeded")
+        print("[OK] Sample live classes seeded")
 
         # ── Sample LMS Courses ─────────────────────────────────────────────────
         sample_lms = [
@@ -223,7 +223,7 @@ def seed():
         for lc in sample_lms:
             if not db.query(LMSCourse).filter_by(id=lc["id"]).first():
                 db.add(LMSCourse(**lc))
-        print("✅ Sample LMS courses seeded")
+        print("[OK] Sample LMS courses seeded")
 
         # ── Sample MC Registrations ────────────────────────────────────────────
         sample_mc_regs = [
@@ -237,18 +237,18 @@ def seed():
             exists = db.query(MCRegistration).filter_by(mc_id=r["mc_id"], email=r["email"]).first()
             if not exists:
                 db.add(MCRegistration(mc_title="Sample Masterclass", **r))
-        print("✅ Sample MC registrations seeded")
+        print("[OK] Sample MC registrations seeded")
 
         db.commit()
-        print("\n🎉 All sample data seeded successfully!")
-        print("\n🔐 Login credentials:")
-        print("   Admin  → admin@arthrex.ai  / Admin@1234")
-        print("   Demo   → arjun@demo.com    / Demo@1234")
+        print("\nAll sample data seeded successfully!")
+        print("\nLogin credentials:")
+        print("   Admin  -> admin@arthrex.ai  / Admin@1234")
+        print("   Demo   -> arjun@demo.com    / Demo@1234")
         print("   (Password policy: min 8 chars, upper+lower+digit+special)")
 
     except Exception as e:
         db.rollback()
-        print(f"❌ Seeding failed: {e}")
+        print(f"Seeding failed: {e}")
         raise
     finally:
         db.close()

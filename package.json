@@ -1,8 +1,8 @@
 {
   "scripts": {
     "dev:frontend": "cd frontend && npm run dev -- --webpack",
-    "dev:backend": "cd backend && uvicorn app.main:app --reload --port 8000",
-    "seed": "cd backend && python -m app.seed",
-    "dev": "start cmd /k \"cd frontend && npm run dev -- --webpack\" && start cmd /k \"cd backend && uvicorn app.main:app --reload --port 8000\""
+    "dev:backend": "cd backend && .\\.venv\\Scripts\\uvicorn app.main:app --reload --port 8000",
+    "seed": "cd backend && .\\.venv\\Scripts\\python -m app.seed",
+    "dev": "start cmd /k \"cd frontend && npm run dev -- --webpack\" && start cmd /k \"cd backend && .\\.venv\\Scripts\\uvicorn app.main:app --reload --port 8000\""
   }
 }

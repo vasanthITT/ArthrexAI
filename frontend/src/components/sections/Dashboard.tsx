@@ -41,7 +41,8 @@ export default function DashboardSection({ onNavigate, onShowAuth }: DashboardPr
       const p: Record<string, number> = {};
       Object.entries(data).forEach(([id, course]) => {
         const totalLessons = (course.topics || []).reduce((s, t) => s + (t.lessons || []).length, 0);
-        const done = JSON.parse(localStorage.getItem(`lf_progress_${id}`) || '[]').length;
+        const progressKey = `lf_progress_${course.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        const done = JSON.parse(localStorage.getItem(progressKey) || '[]').length;
         p[id] = totalLessons ? Math.round((done / totalLessons) * 100) : 0;
       });
       setProgresses(p);

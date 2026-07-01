@@ -6,13 +6,14 @@ import {
   apiGetEnrollments, apiUpdateEnrollment, apiDeleteEnrollment,
   apiGetMasterclasses, apiAddMasterclass, apiDeleteMasterclass,
   apiGetLiveClasses, apiAddLiveClass, apiDeleteLiveClass,
+  apiGetLMS, apiSaveLMS, apiDeleteLMS,
   type UserOut, type EnrollmentOut, type MasterclassOut, type LiveClassOut
 } from '@/lib/api';
 import { showToast } from '@/components/ui/Toast';
 import { useAuth } from '@/lib/auth';
 import { ToastContainer } from '@/components/ui/Toast';
 
-type Tab = 'overview' | 'signups' | 'enrollments' | 'masterclasses' | 'liveclasses';
+type Tab = 'overview' | 'signups' | 'enrollments' | 'masterclasses' | 'liveclasses' | 'lms';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // STYLES (scoped via inline — keep admin self-contained)
@@ -193,19 +194,26 @@ export default function AdminPage() {
   const [enrollments,   setEnrollments]   = useState<EnrollmentOut[]>([]);
   const [masterclasses, setMasterclasses] = useState<MasterclassOut[]>([]);
   const [liveclasses,   setLiveclasses]   = useState<LiveClassOut[]>([]);
+  const [lmsCourses,    setLmsCourses]    = useState<any[]>([]);
 
   // Add forms state
   const [mcForm, setMcForm] = useState({ title: '', tag: 'Agentic AI', instructor: '', description: '', schedule: '', duration: '2 hrs', link: '', rating: 4.9, thumb: '' });
   const [lcForm, setLcForm] = useState({ title: '', tag: 'AI & ML', instructor: '', description: '', schedule: '', startTime: '', endTime: '', duration: '2 hrs', joinLink: '', thumb: '' });
+  const [lmsForm, setLmsForm] = useState({ id: '', name: '', category: 'Agentic AI', duration: '6 Months' });
 
   const loadAll = useCallback(async () => {
     if (!session?.token) return;
     setLoading(true);
     try {
-      const [s, e, m, l] = await Promise.all([
-        apiGetSignups(), apiGetEnrollments(), apiGetMasterclasses(), apiGetLiveClasses()
+      const [s, e, m, l, lms] = await Promise.all([
+        apiGetSignups(), apiGetEnrollments(), apiGetMasterclasses(), apiGetLiveClasses(), apiGetLMS()
       ]);
-      setSignups(s); setEnrollments(e); setMasterclasses(m); setLiveclasses(l);
+      setSignups(s);
+      setEnrollments(e);
+      setMasterclasses(m);
+      setLiveclasses(l);
+      const coursesArray = Object.entries(lms || {}).map(([id, val]: [string, any]) => ({ id, ...val }));
+      setLmsCourses(coursesArray);
     } catch (err: unknown) { showToast(err instanceof Error ? err.message : 'Failed to load', 'error'); }
     finally { setLoading(false); }
   }, [session]);
@@ -250,6 +258,7 @@ export default function AdminPage() {
             <NavItem icon="📋" label="Enrollments"  count={pending || enrollments.length} active={tab === 'enrollments'}  onClick={() => setTab('enrollments')} />
             <NavItem icon="🎓" label="Masterclasses" count={masterclasses.length} active={tab === 'masterclasses'} onClick={() => setTab('masterclasses')} />
             <NavItem icon="🔴" label="Live Classes"  count={liveclasses.length}   active={tab === 'liveclasses'}  onClick={() => setTab('liveclasses')} />
+            <NavItem icon="📚" label="LMS Courses"   count={lmsCourses.length}    active={tab === 'lms'}          onClick={() => setTab('lms')} />
           </nav>
 
           {/* Admin profile */}
@@ -271,10 +280,11 @@ export default function AdminPage() {
           <header style={S.topbar}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
-                {['overview','signups','enrollments','masterclasses','liveclasses'].find(t => t === tab) === 'overview' ? '📊 Dashboard Overview' :
+                {tab === 'overview' ? '📊 Dashboard Overview' :
                  tab === 'signups'       ? '👥 User Signups' :
                  tab === 'enrollments'   ? '📋 Course Enrollments' :
-                 tab === 'masterclasses' ? '🎓 Masterclasses' : '🔴 Live Classes'}
+                 tab === 'masterclasses' ? '🎓 Masterclasses' :
+                 tab === 'liveclasses'   ? '🔴 Live Classes' : '📚 LMS Courses'}
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -486,6 +496,61 @@ export default function AdminPage() {
                         <Td muted>{lc.schedule ? new Date(lc.schedule).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</Td>
                         <Td>{lc.join_link ? <a href={lc.join_link} target="_blank" rel="noreferrer" style={{ color: '#60a5fa', fontSize: '0.78rem' }}>Join ↗</a> : <span style={{ color: '#64748b' }}>—</span>}</Td>
                         <Td><ActionBtn label="Delete" color="#ef4444" onClick={async () => { await apiDeleteLiveClass(lc.id); setLiveclasses(p => p.filter(x => x.id !== lc.id)); showToast('Deleted', 'info'); }} /></Td>
+                      </Tr>
+                    ))}
+                  </DataTable>
+                </div>
+              </div>
+            )}
+
+            {/* ── LMS COURSES ── */}
+            {tab === 'lms' && (
+              <div>
+                <SectionHead title="📚 LMS Courses" count={lmsCourses.length} onRefresh={loadAll} />
+                <AddForm title="Add New LMS Course" onSubmit={async e => {
+                  e.preventDefault();
+                  if (!lmsForm.id.trim()) { showToast('Unique Course ID is required', 'error'); return; }
+                  await apiSaveLMS(lmsForm.id.trim(), {
+                    name: lmsForm.name,
+                    category: lmsForm.category,
+                    duration: lmsForm.duration
+                  });
+                  showToast('Course added successfully! 🎉', 'success');
+                  loadAll();
+                  setLmsForm({ id: '', name: '', category: 'Agentic AI', duration: '6 Months' });
+                }}>
+                  <Field label="Course ID * (Unique Slug, no spaces, e.g. course_agentic_pro)"><input required style={inputStyle} value={lmsForm.id} onChange={e => setLmsForm(f => ({...f, id: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')}))} placeholder="course_slug" /></Field>
+                  <Field label="Course Name *"><input required style={inputStyle} value={lmsForm.name} onChange={e => setLmsForm(f => ({...f, name: e.target.value}))} placeholder="e.g. Professional Agentic AI Engineer" /></Field>
+                  <Field label="Category">
+                    <select style={inputStyle} value={lmsForm.category} onChange={e => setLmsForm(f => ({...f, category: e.target.value}))}>
+                      <option value="Agentic AI">Agentic AI</option>
+                      <option value="Generative AI">Generative AI</option>
+                      <option value="Data Science & Analytics">Data Science & Analytics</option>
+                      <option value="Programming">Programming</option>
+                      <option value="Cloud Based">Cloud Based</option>
+                      <option value="Enterprise">Enterprise</option>
+                    </select>
+                  </Field>
+                  <Field label="Duration"><input style={inputStyle} value={lmsForm.duration} onChange={e => setLmsForm(f => ({...f, duration: e.target.value}))} placeholder="e.g. 6 Months, Self-paced" /></Field>
+                </AddForm>
+
+                <div style={S.card}>
+                  <DataTable heads={['ID', 'Course Name', 'Category', 'Duration', 'Action']} empty={lmsCourses.length === 0}>
+                    {lmsCourses.map(c => (
+                      <Tr key={c.id}>
+                        <Td><span style={{ fontWeight: 600, color: '#fff', fontSize: '0.8rem' }}>{c.id}</span></Td>
+                        <Td><span style={{ color: '#fff', fontWeight: 600 }}>{c.name}</span></Td>
+                        <Td muted>{c.category || '—'}</Td>
+                        <Td muted>{c.duration || '—'}</Td>
+                        <Td>
+                          <ActionBtn label="Delete" color="#ef4444" onClick={async () => {
+                            if (confirm(`Are you sure you want to delete "${c.name}"?`)) {
+                              await apiDeleteLMS(c.id);
+                              setLmsCourses(p => p.filter(x => x.id !== c.id));
+                              showToast('Deleted', 'info');
+                            }
+                          }} />
+                        </Td>
                       </Tr>
                     ))}
                   </DataTable>

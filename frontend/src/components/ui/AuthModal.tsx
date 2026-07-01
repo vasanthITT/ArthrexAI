@@ -157,9 +157,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             <button className="btn-auth-submit" type="submit" disabled={loading}>
               {loading ? <span className="loading-spinner" /> : 'Sign In →'}
             </button>
-            <p className="form-note">
-              Demo: <strong>arjun@demo.com</strong> / <strong>Demo@1234</strong>
-            </p>
           </form>
         )}
       </div>
