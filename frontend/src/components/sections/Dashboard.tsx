@@ -40,10 +40,14 @@ export default function DashboardSection({ onNavigate, onShowAuth }: DashboardPr
       // Load progress from localStorage
       const p: Record<string, number> = {};
       Object.entries(data).forEach(([id, course]) => {
-        const totalLessons = (course.topics || []).reduce((s, t) => s + (t.lessons || []).length, 0);
+        let totalLessons = (course.topics || []).reduce((s, t) => s + (t.lessons || []).length, 0);
+        if (!totalLessons) {
+          const cName = (course.name || '').toLowerCase();
+          totalLessons = cName.includes('agentic') ? 20 : 16;
+        }
         const progressKey = `lf_progress_${course.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
         const done = JSON.parse(localStorage.getItem(progressKey) || '[]').length;
-        p[id] = totalLessons ? Math.round((done / totalLessons) * 100) : 0;
+        p[id] = totalLessons ? Math.min(100, Math.round((done / totalLessons) * 100)) : 0;
       });
       setProgresses(p);
     }).catch(() => {}).finally(() => setLmsLoading(false));

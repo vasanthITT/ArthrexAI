@@ -53,6 +53,7 @@ export const apiDeleteEnrollment = (id: number) =>
 // ── Masterclasses ─────────────────────────────────────────────────────────────
 export const apiGetMasterclasses = () => request<MasterclassOut[]>('GET', '/api/masterclasses');
 export const apiAddMasterclass   = (d: MasterclassCreate) => request<{ success: boolean; id: number }>('POST', '/api/masterclasses', d, true);
+export const apiUpdateMasterclass = (id: number, d: MasterclassCreate) => request<{ success: boolean }>('PUT', `/api/masterclasses/${id}`, d, true);
 export const apiDeleteMasterclass = (id: number) => request<{ success: boolean }>('DELETE', `/api/masterclasses/${id}`, undefined, true);
 
 // ── MC Registrations ──────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ export const apiGetMCRegistrations  = (mcId: string) =>
 // ── Live Classes ──────────────────────────────────────────────────────────────
 export const apiGetLiveClasses    = () => request<LiveClassOut[]>('GET', '/api/liveclasses');
 export const apiAddLiveClass      = (d: LiveClassCreate) => request<{ success: boolean; id: number }>('POST', '/api/liveclasses', d, true);
+export const apiUpdateLiveClass    = (id: number, d: LiveClassCreate)   => request<{ success: boolean }>('PUT', `/api/liveclasses/${id}`, d, true);
 export const apiDeleteLiveClass   = (id: number) => request<{ success: boolean }>('DELETE', `/api/liveclasses/${id}`, undefined, true);
 
 // ── LMS ───────────────────────────────────────────────────────────────────────

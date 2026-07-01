@@ -4,8 +4,8 @@ import ImageUpload from '@/components/ui/ImageUpload';
 import {
   apiGetSignups, apiDeleteSignup,
   apiGetEnrollments, apiUpdateEnrollment, apiDeleteEnrollment,
-  apiGetMasterclasses, apiAddMasterclass, apiDeleteMasterclass,
-  apiGetLiveClasses, apiAddLiveClass, apiDeleteLiveClass,
+  apiGetMasterclasses, apiAddMasterclass, apiUpdateMasterclass, apiDeleteMasterclass,
+  apiGetLiveClasses, apiAddLiveClass, apiUpdateLiveClass, apiDeleteLiveClass,
   apiGetLMS, apiSaveLMS, apiDeleteLMS,
   type UserOut, type EnrollmentOut, type MasterclassOut, type LiveClassOut
 } from '@/lib/api';
@@ -132,21 +132,29 @@ function ActionBtn({ label, color, onClick }: { label: string; color: string; on
 // ─────────────────────────────────────────────────────────────────────────────
 // ADD FORM (generic two-column grid form)
 // ─────────────────────────────────────────────────────────────────────────────
-function AddForm({ title, onSubmit, children }: { title: string; onSubmit: (e: React.FormEvent) => Promise<void>; children: React.ReactNode }) {
+function AddForm({ title, onSubmit, submitLabel = '+ Add Now', onCancel, children }: { title: string; onSubmit: (e: React.FormEvent) => Promise<void>; submitLabel?: string; onCancel?: () => void; children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
+  const isEdit = submitLabel !== '+ Add Now';
   return (
     <div style={{ ...S.card, padding: '20px 24px', marginBottom: 24 }}>
       <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(124,58,237,0.3)', color: '#a78bfa', padding: '3px 10px', borderRadius: 6, fontSize: '0.72rem' }}>NEW</span>
+        <span style={{ background: isEdit ? 'rgba(245,158,11,0.2)' : 'rgba(124,58,237,0.2)', border: isEdit ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(124,58,237,0.3)', color: isEdit ? '#f59e0b' : '#a78bfa', padding: '3px 10px', borderRadius: 6, fontSize: '0.72rem' }}>
+          {isEdit ? 'EDIT' : 'NEW'}
+        </span>
         {title}
       </div>
       <form onSubmit={async e => { setLoading(true); await onSubmit(e); setLoading(false); }}
         style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {children}
-        <div style={{ gridColumn: '1/-1' }}>
-          <button type="submit" disabled={loading} style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: 9, fontWeight: 700, fontSize: '0.88rem', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading ? 0.7 : 1 }}>
-            {loading ? 'Saving…' : '+ Add Now'}
+        <div style={{ gridColumn: '1/-1', display: 'flex', gap: 12 }}>
+          <button type="submit" disabled={loading} style={{ background: isEdit ? 'linear-gradient(135deg,#f59e0b,#ef4444)' : 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: 9, fontWeight: 700, fontSize: '0.88rem', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading ? 0.7 : 1 }}>
+            {loading ? 'Saving…' : submitLabel}
           </button>
+          {onCancel && (
+            <button type="button" onClick={onCancel} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#94a3b8', padding: '10px 24px', borderRadius: 9, fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+              Cancel
+            </button>
+          )}
         </div>
       </form>
     </div>
@@ -195,6 +203,7 @@ export default function AdminPage() {
   const [masterclasses, setMasterclasses] = useState<MasterclassOut[]>([]);
   const [liveclasses,   setLiveclasses]   = useState<LiveClassOut[]>([]);
   const [lmsCourses,    setLmsCourses]    = useState<any[]>([]);
+  const [editingItem, setEditingItem] = useState<{ type: 'mc' | 'lc' | 'lms'; id: any } | null>(null);
 
   // Add forms state
   const [mcForm, setMcForm] = useState({ title: '', tag: 'Agentic AI', instructor: '', description: '', schedule: '', duration: '2 hrs', link: '', rating: 4.9, thumb: '' });
@@ -428,12 +437,27 @@ export default function AdminPage() {
             {tab === 'masterclasses' && (
               <div>
                 <SectionHead title="🎓 Masterclasses" count={masterclasses.length} onRefresh={loadAll} />
-                <AddForm title="Add New Masterclass" onSubmit={async e => {
-                  e.preventDefault();
-                  await apiAddMasterclass({ ...mcForm, videoUrl: '', thumb: mcForm.thumb });
-                  showToast('Masterclass added!', 'success'); loadAll();
-                  setMcForm({ title: '', tag: 'Agentic AI', instructor: '', description: '', schedule: '', duration: '2 hrs', link: '', rating: 4.9, thumb: '' });
-                }}>
+                <AddForm
+                  title={editingItem?.type === 'mc' ? "Edit Masterclass" : "Add New Masterclass"}
+                  submitLabel={editingItem?.type === 'mc' ? "Save Changes" : "+ Add Now"}
+                  onCancel={editingItem?.type === 'mc' ? () => {
+                    setEditingItem(null);
+                    setMcForm({ title: '', tag: 'Agentic AI', instructor: '', description: '', schedule: '', duration: '2 hrs', link: '', rating: 4.9, thumb: '' });
+                  } : undefined}
+                  onSubmit={async e => {
+                    e.preventDefault();
+                    if (editingItem?.type === 'mc') {
+                      await apiUpdateMasterclass(editingItem.id, { ...mcForm, videoUrl: '', thumb: mcForm.thumb });
+                      showToast('Masterclass updated!', 'success');
+                      setEditingItem(null);
+                    } else {
+                      await apiAddMasterclass({ ...mcForm, videoUrl: '', thumb: mcForm.thumb });
+                      showToast('Masterclass added!', 'success');
+                    }
+                    loadAll();
+                    setMcForm({ title: '', tag: 'Agentic AI', instructor: '', description: '', schedule: '', duration: '2 hrs', link: '', rating: 4.9, thumb: '' });
+                  }}
+                >
                   <Field label="Title *"><input required style={inputStyle} value={mcForm.title} onChange={e => setMcForm(f => ({...f, title: e.target.value}))} placeholder="Masterclass title" /></Field>
                   <Field label="Tag"><input style={inputStyle} value={mcForm.tag} onChange={e => setMcForm(f => ({...f, tag: e.target.value}))} /></Field>
                   <Field label="Instructor"><input style={inputStyle} value={mcForm.instructor} onChange={e => setMcForm(f => ({...f, instructor: e.target.value}))} placeholder="Instructor name" /></Field>
@@ -447,7 +471,7 @@ export default function AdminPage() {
                 </AddForm>
 
                 <div style={S.card}>
-                  <DataTable heads={['Title', 'Tag', 'Instructor', 'Schedule', 'Rating', 'Action']} empty={masterclasses.length === 0}>
+                  <DataTable heads={['Title', 'Tag', 'Instructor', 'Schedule', 'Rating', 'Actions']} empty={masterclasses.length === 0}>
                     {masterclasses.map(mc => (
                       <Tr key={mc.id}>
                         <Td><span style={{ fontWeight: 600, color: '#fff' }}>{mc.title}</span></Td>
@@ -455,7 +479,25 @@ export default function AdminPage() {
                         <Td muted>{mc.instructor || '—'}</Td>
                         <Td muted>{mc.schedule ? new Date(mc.schedule).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</Td>
                         <Td><span style={{ color: '#f59e0b', fontWeight: 700 }}>⭐ {mc.rating}</span></Td>
-                        <Td><ActionBtn label="Delete" color="#ef4444" onClick={async () => { await apiDeleteMasterclass(mc.id); setMasterclasses(p => p.filter(x => x.id !== mc.id)); showToast('Deleted', 'info'); }} /></Td>
+                        <Td>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <ActionBtn label="Edit" color="#f59e0b" onClick={() => {
+                              setEditingItem({ type: 'mc', id: mc.id });
+                              setMcForm({
+                                title: mc.title || '',
+                                tag: mc.tag || 'Agentic AI',
+                                instructor: mc.instructor || '',
+                                description: mc.description || '',
+                                schedule: mc.schedule || '',
+                                duration: mc.duration || '2 hrs',
+                                link: mc.link || '',
+                                rating: mc.rating || 4.9,
+                                thumb: mc.thumb || ''
+                              });
+                            }} />
+                            <ActionBtn label="Delete" color="#ef4444" onClick={async () => { await apiDeleteMasterclass(mc.id); setMasterclasses(p => p.filter(x => x.id !== mc.id)); showToast('Deleted', 'info'); }} />
+                          </div>
+                        </Td>
                       </Tr>
                     ))}
                   </DataTable>
@@ -463,16 +505,30 @@ export default function AdminPage() {
               </div>
             )}
 
-            {/* ── LIVE CLASSES ── */}
             {tab === 'liveclasses' && (
               <div>
                 <SectionHead title="🔴 Live Classes" count={liveclasses.length} onRefresh={loadAll} />
-                <AddForm title="Add New Live Class" onSubmit={async e => {
-                  e.preventDefault();
-                  await apiAddLiveClass(lcForm);
-                  showToast('Live class added!', 'success'); loadAll();
-                  setLcForm({ title: '', tag: 'AI & ML', instructor: '', description: '', schedule: '', startTime: '', endTime: '', duration: '2 hrs', joinLink: '', thumb: '' });
-                }}>
+                <AddForm
+                  title={editingItem?.type === 'lc' ? "Edit Live Class" : "Add New Live Class"}
+                  submitLabel={editingItem?.type === 'lc' ? "Save Changes" : "+ Add Now"}
+                  onCancel={editingItem?.type === 'lc' ? () => {
+                    setEditingItem(null);
+                    setLcForm({ title: '', tag: 'AI & ML', instructor: '', description: '', schedule: '', startTime: '', endTime: '', duration: '2 hrs', joinLink: '', thumb: '' });
+                  } : undefined}
+                  onSubmit={async e => {
+                    e.preventDefault();
+                    if (editingItem?.type === 'lc') {
+                      await apiUpdateLiveClass(editingItem.id, lcForm);
+                      showToast('Live class updated!', 'success');
+                      setEditingItem(null);
+                    } else {
+                      await apiAddLiveClass(lcForm);
+                      showToast('Live class added!', 'success');
+                    }
+                    loadAll();
+                    setLcForm({ title: '', tag: 'AI & ML', instructor: '', description: '', schedule: '', startTime: '', endTime: '', duration: '2 hrs', joinLink: '', thumb: '' });
+                  }}
+                >
                   <Field label="Title *"><input required style={inputStyle} value={lcForm.title} onChange={e => setLcForm(f => ({...f, title: e.target.value}))} placeholder="Class title" /></Field>
                   <Field label="Tag"><input style={inputStyle} value={lcForm.tag} onChange={e => setLcForm(f => ({...f, tag: e.target.value}))} /></Field>
                   <Field label="Instructor"><input style={inputStyle} value={lcForm.instructor} onChange={e => setLcForm(f => ({...f, instructor: e.target.value}))} placeholder="Instructor name" /></Field>
@@ -487,15 +543,34 @@ export default function AdminPage() {
                 </AddForm>
 
                 <div style={S.card}>
-                  <DataTable heads={['Title', 'Tag', 'Instructor', 'Schedule', 'Join Link', 'Action']} empty={liveclasses.length === 0}>
+                  <DataTable heads={['Title', 'Tag', 'Instructor', 'Schedule', 'Join Link', 'Actions']} empty={liveclasses.length === 0}>
                     {liveclasses.map(lc => (
                       <Tr key={lc.id}>
                         <Td><span style={{ fontWeight: 600, color: '#fff' }}>{lc.title}</span></Td>
                         <Td><span style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', padding: '2px 9px', borderRadius: 50, fontSize: '0.72rem', fontWeight: 700 }}>{lc.tag}</span></Td>
                         <Td muted>{lc.instructor || '—'}</Td>
                         <Td muted>{lc.schedule ? new Date(lc.schedule).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</Td>
-                        <Td>{lc.join_link ? <a href={lc.join_link} target="_blank" rel="noreferrer" style={{ color: '#60a5fa', fontSize: '0.78rem' }}>Join ↗</a> : <span style={{ color: '#64748b' }}>—</span>}</Td>
-                        <Td><ActionBtn label="Delete" color="#ef4444" onClick={async () => { await apiDeleteLiveClass(lc.id); setLiveclasses(p => p.filter(x => x.id !== lc.id)); showToast('Deleted', 'info'); }} /></Td>
+                        <Td>{lc.join_link || lc.joinLink ? <a href={lc.join_link || lc.joinLink} target="_blank" rel="noreferrer" style={{ color: '#60a5fa', fontSize: '0.78rem' }}>Join ↗</a> : <span style={{ color: '#64748b' }}>—</span>}</Td>
+                        <Td>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <ActionBtn label="Edit" color="#f59e0b" onClick={() => {
+                              setEditingItem({ type: 'lc', id: lc.id });
+                              setLcForm({
+                                title: lc.title || '',
+                                tag: lc.tag || 'AI & ML',
+                                instructor: lc.instructor || '',
+                                description: lc.description || '',
+                                schedule: lc.schedule || '',
+                                startTime: lc.startTime || lc.start_time || '',
+                                endTime: lc.endTime || lc.end_time || '',
+                                duration: lc.duration || '2 hrs',
+                                joinLink: lc.joinLink || lc.join_link || '',
+                                thumb: lc.thumb || ''
+                              });
+                            }} />
+                            <ActionBtn label="Delete" color="#ef4444" onClick={async () => { await apiDeleteLiveClass(lc.id); setLiveclasses(p => p.filter(x => x.id !== lc.id)); showToast('Deleted', 'info'); }} />
+                          </div>
+                        </Td>
                       </Tr>
                     ))}
                   </DataTable>
@@ -507,19 +582,46 @@ export default function AdminPage() {
             {tab === 'lms' && (
               <div>
                 <SectionHead title="📚 LMS Courses" count={lmsCourses.length} onRefresh={loadAll} />
-                <AddForm title="Add New LMS Course" onSubmit={async e => {
-                  e.preventDefault();
-                  if (!lmsForm.id.trim()) { showToast('Unique Course ID is required', 'error'); return; }
-                  await apiSaveLMS(lmsForm.id.trim(), {
-                    name: lmsForm.name,
-                    category: lmsForm.category,
-                    duration: lmsForm.duration
-                  });
-                  showToast('Course added successfully! 🎉', 'success');
-                  loadAll();
-                  setLmsForm({ id: '', name: '', category: 'Agentic AI', duration: '6 Months' });
-                }}>
-                  <Field label="Course ID * (Unique Slug, no spaces, e.g. course_agentic_pro)"><input required style={inputStyle} value={lmsForm.id} onChange={e => setLmsForm(f => ({...f, id: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')}))} placeholder="course_slug" /></Field>
+                <AddForm
+                  title={editingItem?.type === 'lms' ? "Edit LMS Course" : "Add New LMS Course"}
+                  submitLabel={editingItem?.type === 'lms' ? "Save Changes" : "+ Add Now"}
+                  onCancel={editingItem?.type === 'lms' ? () => {
+                    setEditingItem(null);
+                    setLmsForm({ id: '', name: '', category: 'Agentic AI', duration: '6 Months' });
+                  } : undefined}
+                  onSubmit={async e => {
+                    e.preventDefault();
+                    if (!lmsForm.id.trim()) { showToast('Unique Course ID is required', 'error'); return; }
+                    
+                    const existingCourse = lmsCourses.find(c => c.id === lmsForm.id.trim());
+                    const extra = existingCourse ? { ...existingCourse } : {};
+                    delete extra.id;
+                    delete extra.name;
+                    delete extra.category;
+                    delete extra.duration;
+
+                    await apiSaveLMS(lmsForm.id.trim(), {
+                      name: lmsForm.name,
+                      category: lmsForm.category,
+                      duration: lmsForm.duration,
+                      ...extra
+                    });
+                    showToast(editingItem?.type === 'lms' ? 'Course updated successfully! 🎉' : 'Course added successfully! 🎉', 'success');
+                    setEditingItem(null);
+                    loadAll();
+                    setLmsForm({ id: '', name: '', category: 'Agentic AI', duration: '6 Months' });
+                  }}
+                >
+                  <Field label="Course ID * (Unique Slug, no spaces, e.g. course_agentic_pro)">
+                    <input
+                      required
+                      disabled={editingItem?.type === 'lms'}
+                      style={{ ...inputStyle, opacity: editingItem?.type === 'lms' ? 0.6 : 1, cursor: editingItem?.type === 'lms' ? 'not-allowed' : 'text' }}
+                      value={lmsForm.id}
+                      onChange={e => setLmsForm(f => ({...f, id: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')}))}
+                      placeholder="course_slug"
+                    />
+                  </Field>
                   <Field label="Course Name *"><input required style={inputStyle} value={lmsForm.name} onChange={e => setLmsForm(f => ({...f, name: e.target.value}))} placeholder="e.g. Professional Agentic AI Engineer" /></Field>
                   <Field label="Category">
                     <select style={inputStyle} value={lmsForm.category} onChange={e => setLmsForm(f => ({...f, category: e.target.value}))}>
@@ -535,7 +637,7 @@ export default function AdminPage() {
                 </AddForm>
 
                 <div style={S.card}>
-                  <DataTable heads={['ID', 'Course Name', 'Category', 'Duration', 'Action']} empty={lmsCourses.length === 0}>
+                  <DataTable heads={['ID', 'Course Name', 'Category', 'Duration', 'Actions']} empty={lmsCourses.length === 0}>
                     {lmsCourses.map(c => (
                       <Tr key={c.id}>
                         <Td><span style={{ fontWeight: 600, color: '#fff', fontSize: '0.8rem' }}>{c.id}</span></Td>
@@ -543,13 +645,24 @@ export default function AdminPage() {
                         <Td muted>{c.category || '—'}</Td>
                         <Td muted>{c.duration || '—'}</Td>
                         <Td>
-                          <ActionBtn label="Delete" color="#ef4444" onClick={async () => {
-                            if (confirm(`Are you sure you want to delete "${c.name}"?`)) {
-                              await apiDeleteLMS(c.id);
-                              setLmsCourses(p => p.filter(x => x.id !== c.id));
-                              showToast('Deleted', 'info');
-                            }
-                          }} />
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <ActionBtn label="Edit" color="#f59e0b" onClick={() => {
+                              setEditingItem({ type: 'lms', id: c.id });
+                              setLmsForm({
+                                id: c.id,
+                                name: c.name || '',
+                                category: c.category || 'Agentic AI',
+                                duration: c.duration || '6 Months'
+                              });
+                            }} />
+                            <ActionBtn label="Delete" color="#ef4444" onClick={async () => {
+                              if (confirm(`Are you sure you want to delete "${c.name}"?`)) {
+                                await apiDeleteLMS(c.id);
+                                setLmsCourses(p => p.filter(x => x.id !== c.id));
+                                showToast('Deleted', 'info');
+                              }
+                            }} />
+                          </div>
                         </Td>
                       </Tr>
                     ))}

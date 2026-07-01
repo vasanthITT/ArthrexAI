@@ -43,6 +43,30 @@ def add_liveclass(data: LiveClassCreate, db: Session = Depends(get_db), _: dict 
     return {"success": True, "id": lc.id}
 
 
+@router.put("/{lid}", response_model=dict)
+def update_liveclass(lid: int, data: LiveClassCreate, db: Session = Depends(get_db), _: dict = Depends(get_admin_user)):
+    lc = db.query(LiveClass).filter_by(id=lid).first()
+    if not lc:
+        raise HTTPException(status_code=404, detail="Live class not found.")
+    
+    date_val   = data.schedule.split("T")[0] if "T" in data.schedule else data.schedule
+    start_time = data.schedule.split("T")[1] if "T" in data.schedule else data.startTime
+
+    lc.title = data.title
+    lc.tag = data.tag
+    lc.instructor = data.instructor
+    lc.description = data.description
+    lc.schedule = data.schedule
+    lc.date = date_val
+    lc.start_time = start_time
+    lc.end_time = data.endTime
+    lc.duration = data.duration
+    lc.join_link = data.joinLink or data.link
+    lc.thumb = data.thumb
+    db.commit()
+    return {"success": True}
+
+
 @router.delete("/{lid}")
 def delete_liveclass(lid: int, db: Session = Depends(get_db), _: dict = Depends(get_admin_user)):
     lc = db.query(LiveClass).filter_by(id=lid).first()

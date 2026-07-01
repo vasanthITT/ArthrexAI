@@ -30,6 +30,25 @@ def add_masterclass(data: MasterclassCreate, db: Session = Depends(get_db), _: d
     return {"success": True, "id": mc.id}
 
 
+@router.put("/api/masterclasses/{mid}", response_model=dict)
+def update_masterclass(mid: int, data: MasterclassCreate, db: Session = Depends(get_db), _: dict = Depends(get_admin_user)):
+    mc = db.query(Masterclass).filter_by(id=mid).first()
+    if not mc:
+        raise HTTPException(status_code=404, detail="Masterclass not found.")
+    mc.title       = data.title
+    mc.tag         = data.tag
+    mc.instructor  = data.instructor
+    mc.description = data.description
+    mc.schedule    = data.schedule
+    mc.duration    = data.duration
+    mc.link        = data.link
+    mc.rating      = data.rating
+    mc.thumb       = data.thumb
+    mc.video_url   = data.videoUrl
+    db.commit()
+    return {"success": True}
+
+
 @router.delete("/api/masterclasses/{mid}")
 def delete_masterclass(mid: int, db: Session = Depends(get_db), _: dict = Depends(get_admin_user)):
     mc = db.query(Masterclass).filter_by(id=mid).first()

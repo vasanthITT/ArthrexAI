@@ -6,7 +6,7 @@ from app.auth import get_admin_user
 
 router = APIRouter(prefix="/api/upload", tags=["upload"])
 
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "uploads")
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "static", "uploads")
 ALLOWED    = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"}
 MAX_BYTES  = 5 * 1024 * 1024   # 5 MB
 
